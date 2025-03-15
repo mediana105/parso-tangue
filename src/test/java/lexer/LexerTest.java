@@ -1,11 +1,9 @@
-package test.lexer;
+package lexer;
 
-import main.lexer.Token;
-import main.lexer.TokenImpl;
-import main.lexer.TokenType;
-import org.junit.Test;
-import main.lexer.Lexer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,21 +13,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
 
 public class LexerTest {
     @Test
     @DisplayName("Empty Input")
     public void testEmptyInput() {
         Iterator<Token> iterator = new Lexer("").iterator();
-        assertFalse(iterator.hasNext());
+        Assertions.assertFalse(iterator.hasNext());
     }
 
     @Test
     @DisplayName("Input only with whitespaces")
     public void testWhitespacesSource() {
         Iterator<Token> iterator = new Lexer("    \t\t\t\n\n \r").iterator();
-        assertFalse(iterator.hasNext());
+        Assertions.assertFalse(iterator.hasNext());
     }
 
     @ParameterizedTest
@@ -40,13 +37,13 @@ public class LexerTest {
         Iterator<Token> iterator = lexer.iterator();
 
         for (Token expectedToken : expectedTokens) {
-            assertTrue(iterator.hasNext());
+            Assertions.assertTrue(iterator.hasNext());
             Token actualToken = iterator.next();
-            assertEquals(expectedToken.getType(), actualToken.getType());
-            assertEquals(expectedToken.getRepr(), actualToken.getRepr());
-            assertEquals(expectedToken.getPos(), actualToken.getPos());
+            Assertions.assertEquals(expectedToken.type(), actualToken.type());
+            Assertions.assertEquals(expectedToken.repr(), actualToken.repr());
+            Assertions.assertEquals(expectedToken.pos(), actualToken.pos());
         }
-        assertFalse(iterator.hasNext());
+        Assertions.assertFalse(iterator.hasNext());
     }
 
     private static Stream<Arguments> provideTestCases() {

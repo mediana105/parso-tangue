@@ -1,4 +1,4 @@
-package main.lexer;
+package lexer;
 
 public enum TokenType {
     OPERATION, // +, -, *, /, %

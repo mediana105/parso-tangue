@@ -1,4 +1,6 @@
-package main.lexer;
+package lexer;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -21,6 +23,7 @@ public class Lexer implements Iterable<Token> {
     private int line = 1;
     private boolean isEOF = false;
 
+    @NotNull
     @Override
     public Iterator<Token> iterator() {
         return new Iterator<>() {
