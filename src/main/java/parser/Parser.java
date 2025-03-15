@@ -3,7 +3,9 @@ package parser;
 import lexer.Lexer;
 import lexer.Token;
 import lexer.TokenType;
+import utils.FileUtils;
 
+import java.io.FileNotFoundException;
 import java.util.*;
 
 // The node of the abstract syntax tree (AST)
@@ -293,7 +295,8 @@ public class Parser {
     private final Iterator<Token> tokens;
     private Program program;
 
-    public Parser(String src) {
+    public Parser(String filePath) throws FileNotFoundException {
+        String src = FileUtils.readFileToString(filePath);
         Lexer lexer = new Lexer(src);
         this.tokens = lexer.iterator();
         this.curToken = tokens.next();
@@ -553,44 +556,6 @@ public class Parser {
     public static class ParserException extends RuntimeException {
         public ParserException(String message) {
             super(message);
-        }
-    }
-
-
-    public static void main(String[] args) {
-        String sourceCode = """
-                int add(a, b) {
-                    return a + b;
-                }
-                
-                c = 6;
-                add(5, 6);
-                add(5, 6);
-                {
-                x = x + 1;
-                void reduce(c, x) {
-                c = c - x;
-                    }
-                reduce(1, 2);
-                }
-                
-                void main() {
-                    x = 10;
-                    y = 20;
-                    z = add(x, y);
-                    if (z > 25) {
-                        print("z is greater than 25");
-                    } else {
-                        print("z is less than or equal to 25");
-                    }
-                }
-                """;
-        try {
-            Parser parser = new Parser(sourceCode);
-            Program program1 = parser.parse();
-            System.out.println(program1.toString(0));
-        } catch (Parser.ParserException e) {
-            System.err.println("Parser error: " + e.getMessage());
         }
     }
 }
