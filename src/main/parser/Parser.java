@@ -1,8 +1,8 @@
-package parser;
+package main.parser;
 
-import lexer.Lexer;
-import lexer.Token;
-import lexer.TokenType;
+import main.lexer.Lexer;
+import main.lexer.Token;
+import main.lexer.TokenType;
 
 import java.util.*;
 
@@ -12,45 +12,36 @@ interface Node {
 }
 
 class Program implements Node {
-    private final List<Block> blocks;
-    private final List<FuncDeclaration> functions;
-    private final List<Statement> statements;
+    private final List<Node> nodes;
 
-    Program(List<Block> blocks, List<FuncDeclaration> functions, List<Statement> statements) {
-        this.blocks = blocks;
-        this.functions = functions;
-        this.statements = statements;
+    Program(List<Node> nodes) {
+        this.nodes = nodes;
     }
+
 
     @Override
     public void print(int offset) {
         String curOffset = Parser.getCurOffset(offset);
         System.out.println(curOffset + "Program: ");
-
-        // print Blocks
-        int blockNumber = 1;
-        System.out.println(curOffset + "  Blocks: ");
-        for (Block block : blocks) {
-            System.out.print("Block #" + blockNumber + ": ");
-            if (block != null) {
-                block.print(offset + 2);
-                blockNumber++;
-            }
-        }
-
-        // print Functions
-        System.out.println(curOffset + "  Functions: ");
-        for (FuncDeclaration function : functions) {
-            if (function != null) {
-                function.print(offset + 2);
-            }
-        }
-
-        // print statements
-        System.out.println(curOffset + "  Statements: ");
-        for (Statement statement : statements) {
-            if (statement != null) {
-                statement.print(offset + 2);
+        for (Node node : nodes) {
+            switch (node) {
+                case Block block -> {
+                    // print Blocks
+                    System.out.println(curOffset + "  Block:");
+                    block.print(offset + 2);
+                }
+                case FuncDeclaration funcDeclaration -> {
+                    // print Functions
+                    System.out.println(curOffset + "  Function:");
+                    funcDeclaration.print(offset + 2);
+                }
+                case Statement statement -> {
+                    // print Statements
+                    System.out.println(curOffset + "  Statement:");
+                    statement.print(offset + 2);
+                }
+                case null, default -> {
+                }
             }
         }
     }
@@ -115,12 +106,18 @@ class FuncDeclaration implements Statement {
     public void print(int offset) {
         String curOffset = Parser.getCurOffset(offset);
         System.out.println(curOffset + "FuncDeclaration: ");
-        System.out.print(type + " ");
-        identifier.print(1);
-        System.out.println(curOffset + "  Parameters: ");
-        for (Identifier arg : args) {
-            arg.print(offset + 2);
+        System.out.println(curOffset + "  Type: " + type);
+        System.out.print(curOffset + "  Name: ");
+        identifier.print(0);
+        if (args.isEmpty()) {
+            System.out.println(curOffset + "  Parameters: ()");
+        } else {
+            System.out.println(curOffset + "  Parameters: ");
+            for (Identifier arg : args) {
+                arg.print(offset + 2);
+            }
         }
+
         System.out.println(curOffset + "  Body: ");
         funcBody.print(offset + 2);
     }
@@ -149,7 +146,7 @@ class FuncCall implements Statement {
     }
 }
 
-// Assignment Node for =
+// Assignment Node for '='
 class Assignment implements Statement {
     private final Identifier identifier; // the left side of assignment
     private final Statement expr; // the right side of assignment
@@ -255,9 +252,6 @@ public class Parser {
     private Token curToken;
     private Token nextToken;
     private final Iterator<Token> tokens;
-    private final List<TokenType> expressionStartTokens = Arrays.asList(
-            TokenType.STRING, TokenType.INT, TokenType.IDENTIFIER, TokenType.KEYWORD
-    );
     private Program program;
 
     public Parser(Lexer lexer) {
@@ -278,13 +272,6 @@ public class Parser {
         }
     }
 
-    private boolean expectExprStart() {
-        if (curToken == null) {
-            return false;
-        }
-        return expressionStartTokens.contains(curToken.getType()) ||
-                (curToken.getType() == TokenType.SPECIAL && "(".equals(curToken.getRepr()));
-    }
 
     private void acceptToken(String target) {
         if (curToken == null || !target.equals(curToken.getRepr())) {
@@ -295,31 +282,33 @@ public class Parser {
     }
 
     private void parseProgram() {
-        List<FuncDeclaration> functions = new ArrayList<>(); // function declarations
-        List<Statement> statements = new ArrayList<>(); // function calls, assignments, if and return statements
-        List<Block> blocks = new ArrayList<>(); // blocks enclosed in {}
+        List<Node> nodes = new ArrayList<>(); // common list for all program elements
         while (curToken != null && curToken.getType() != null) {
             if (curToken.getRepr().equals("void") || curToken.getRepr().equals("int")) { // the returned value
                 FuncDeclaration function = (FuncDeclaration) parseFunctionDeclaration();
-                functions.add(function);
+                nodes.add(function);
+                //functions.add(function);
             } else if (curToken.getRepr().equals("if")) {
                 Statement ifStatement = parseIfStatement();
-                statements.add(ifStatement);
+                nodes.add(ifStatement);
+                //statements.add(ifStatement);
             } else if (curToken.getRepr().equals("{")) {
-                Block statement = parseBlock();
-                blocks.add(statement);
+                Block block = parseBlock();
+                nodes.add(block);
+                // blocks.add(block);
             } else {
                 Statement statement = parseSentences();
-                // if statement null -- the next token is {
+                // if statement null -- the next token is '{'
                 if (statement != null) {
-                    statements.add(statement);
+                    // statements.add(statement);
+                    nodes.add(statement);
                 }
             }
         }
         if (curToken != null && curToken.getType() != null) {
             throw new ParserException("Unexpected token: " + curToken.getType() + ". Expected EOF.");
         }
-        this.program = new Program(blocks, functions, statements);
+        this.program = new Program(nodes);
     }
 
     private Block parseBlock() {
@@ -376,7 +365,7 @@ public class Parser {
         } else if (nextToken != null && (nextToken.getType() == TokenType.OPERATION)) {
             nextSym();
             return parseExpr(); // math expression
-        } else if (nextToken != null && ("(".equals(nextToken.getRepr()) || expectExprStart())) {
+        } else if (nextToken != null && ("(".equals(nextToken.getRepr()))) {
             return parseFuncCall(identifierNode); // function call
         } else {
             throw new ParserException("Unexpected token " + (nextToken != null ? nextToken.getRepr() : "null") + " after identifier.");

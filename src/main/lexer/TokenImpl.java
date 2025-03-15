@@ -1,4 +1,4 @@
-package lexer;
+package main.lexer;
 
 public class TokenImpl implements Token {
     private final TokenType type;

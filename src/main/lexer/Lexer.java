@@ -1,4 +1,4 @@
-package lexer;
+package main.lexer;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -16,7 +16,7 @@ public class Lexer implements Iterable<Token> {
     public record Pos(int line, int col) {
     }
 
-    private int curIndex = 0; // current position of lexer iterator in input code
+    private int curIndex = 0; // current position of main.lexer iterator in input code
     private int col = 1;
     private int line = 1;
     private boolean isEOF = false;

@@ -1,4 +1,4 @@
-package lexer;
+package main.lexer;
 
 public interface Token {
     TokenType getType();
