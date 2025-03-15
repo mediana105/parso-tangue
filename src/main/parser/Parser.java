@@ -346,13 +346,11 @@ public class Parser {
 
     private Statement parseStatementStartWithKeyword() {
         if (curToken != null && curToken.getType() == TokenType.KEYWORD) {
-            if (curToken.getRepr().equals("return")) {
-                return parseReturnStatement();
-            } else if (curToken.getRepr().equals("if")) {
-                return parseIfStatement();
-            } else {
-                return parseFunctionDeclaration();
-            }
+            return switch (curToken.getRepr()) {
+                case "return" -> parseReturnStatement();
+                case "if" -> parseIfStatement();
+                default -> parseFunctionDeclaration();
+            };
         }
         return null;
     }

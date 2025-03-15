@@ -51,11 +51,9 @@ public class Lexer implements Iterable<Token> {
                 } catch (LexerException e) {
                     throw new RuntimeException(e);
                 }
-                if (nextToken != null) {
-                    return nextToken;
-                } else {
-                    return null;
-                }
+                Token curToken = nextToken;
+                nextToken = null;
+                return curToken;
             }
         };
     }
@@ -159,8 +157,8 @@ public class Lexer implements Iterable<Token> {
         }
 
         while (curIndex < src.length()) {
-            // Regular expression for keyword search: var, void, if, else, return
-            Pattern keyWords = Pattern.compile("\\b(var|void|if|else|return)\\b");
+            // Regular expression for keyword search: int, void, if, else, return
+            Pattern keyWords = Pattern.compile("\\b(int|void|if|else|return)\\b");
             Matcher keyWordsMatcher = keyWords.matcher(src).region(curIndex, src.length());
             if (keyWordsMatcher.lookingAt()) {
                 return createRegexToken(TokenType.KEYWORD, keyWordsMatcher);

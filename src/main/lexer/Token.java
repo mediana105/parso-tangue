@@ -5,4 +5,5 @@ public interface Token {
 
     String getRepr();
 
+    Lexer.Pos getPos();
 }

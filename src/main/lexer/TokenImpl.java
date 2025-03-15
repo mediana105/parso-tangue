@@ -20,4 +20,9 @@ public class TokenImpl implements Token {
     public String getRepr() {
         return repr;
     }
+
+    @Override
+    public Lexer.Pos getPos() {
+        return pos;
+    }
 }
